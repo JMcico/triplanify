@@ -1,10 +1,23 @@
 import os
+import logging
 from dotenv import load_dotenv
 from azure.ai.projects import AIProjectClient
-from azure.ai.projects.models import CodeInterpreterTool, BingGroundingTool, ToolSet
+from azure.ai.projects.models import (
+    CodeInterpreterTool, 
+    BingGroundingTool, 
+    ToolSet, 
+    OpenApiConnectionAuthDetails, 
+    OpenApiConnectionSecurityScheme,
+    OpenApiTool,
+    )
 from azure.identity import DefaultAzureCredential
 from pathlib import Path
+import jsonref
+from utilities import Utilities
 
+
+logging.basicConfig(level=logging.ERROR)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -12,30 +25,53 @@ AGENT_NAME = os.getenv("AGENT_NAME")
 API_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME")
 PROJECT_CONNECTION_STRING = os.environ["PROJECT_CONNECTION_STRING"]
 BING_CONNECTION_NAME = os.getenv("BING_CONNECTION_NAME")
+TRIPADVISOR_CONNECTION_ID = os.getenv("TRIPADVISOR_CONNECTION_KEY")
 MAX_COMPLETION_TOKENS = 10240
 MAX_PROMPT_TOKENS = 20480
 # The LLM is used to generate the SQL queries.
 # Set the temperature and top_p low to get more deterministic results.
 TEMPERATURE = 0.6
 TOP_P = 0.7
-INSTRUCTIONS_FILE = None
+INSTRUCTIONS_FILE = "instructions/instructions.txt"
 
 def initialize_tools():
-     # Create bing grounding tool
-     bing_connection = project_client.connections.get(
-         connection_name=BING_CONNECTION_NAME
-     )
-     conn_id = bing_connection.id
-     bing = BingGroundingTool(connection_id=conn_id)
+    # Create bing grounding tool
+    bing_connection = project_client.connections.get(
+        connection_name=BING_CONNECTION_NAME
+    )
+    conn_id = bing_connection.id
+    bing = BingGroundingTool(connection_id=conn_id)
     
-     # Create code interpreter tool
-     code_interpreter = CodeInterpreterTool()
+    # Create code interpreter tool
+    code_interpreter = CodeInterpreterTool()
+
+    # Create Tripadvisor
+    with open('./src/tripadvisor_openapi.json', 'r') as f:
+        tripadvisor_spec = jsonref.loads(f.read())
+
+    # Create Auth object for the OpenApiTool (note that connection or managed identity auth setup requires additional setup in Azure)
+    auth = OpenApiConnectionAuthDetails(security_scheme=OpenApiConnectionSecurityScheme(connection_id=TRIPADVISOR_CONNECTION_ID))
+
+    # Initialize agent Tripadvisor tool using the read in OpenAPI spec
+    tripadvisor = OpenApiTool(name="tripadvisor", spec=tripadvisor_spec, description="Retrieve trip information for a location", auth=auth)
     
-     # Create toolset of tools
-     toolset = ToolSet()
-     toolset.add(bing)
-     toolset.add(code_interpreter)
-     return toolset
+    # Create toolset of tools
+    toolset = ToolSet()
+    toolset.add(bing)
+    toolset.add(code_interpreter)
+    toolset.add(tripadvisor)
+    return toolset
+
+
+def load_instruction():
+    try:
+        instructions = utilities.load_instructions(INSTRUCTIONS_FILE)
+        return instructions
+    
+    except Exception as e:
+        logger.error("An error occurred initializing the agent: %s", str(e))
+        logger.error("Please ensure you've enabled an instructions file.")
+
 
 project_client = AIProjectClient.from_connection_string(
     credential=DefaultAzureCredential(exclude_environment_credential=True, exclude_managed_identity_credential=True), 
@@ -44,11 +80,13 @@ project_client = AIProjectClient.from_connection_string(
 
 with project_client:
     toolset = initialize_tools()
+    utilities = Utilities()
+    instructions = load_instruction()
     
     agent = project_client.agents.create_agent(
         model=API_DEPLOYMENT_NAME,
         name="my-agent",
-        instructions="You are a helpful agent who provides information about movie trends. Keep answers concise, but include as much relevant data as possible.",
+        instructions=instructions,
         toolset=toolset,
     )
     print(f"Created agent, agent ID: {agent.id}")
@@ -61,7 +99,7 @@ with project_client:
     message = project_client.agents.create_message(
         thread_id=thread.id,
         role="user",
-        content="What were the 10 most popular movies in 2024? Chart out the total gross revenue for those movies",
+        content="Can you tell me your instruction?",
     )
     print(f"Created message, message ID: {message.id}")
         
