@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 AGENT_NAME = os.getenv("AGENT_NAME")
+AGENT_ID = os.getenv("AGENT_ID")
 API_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME")
 PROJECT_CONNECTION_STRING = os.environ["PROJECT_CONNECTION_STRING"]
 BING_CONNECTION_NAME = os.getenv("BING_CONNECTION_NAME")
@@ -71,7 +72,7 @@ def load_instruction():
     except Exception as e:
         logger.error("An error occurred initializing the agent: %s", str(e))
         logger.error("Please ensure you've enabled an instructions file.")
-
+        
 
 project_client = AIProjectClient.from_connection_string(
     credential=DefaultAzureCredential(exclude_environment_credential=True, exclude_managed_identity_credential=True), 
@@ -131,5 +132,5 @@ with project_client:
         print(f"Saved image file to: {Path.cwd() / file_name}")
 
     # Delete the agent once done
-    project_client.agents.delete_agent(agent.id)
-    print("Deleted agent")
+    # project_client.agents.delete_agent(agent.id)
+    # print("Deleted agent")
