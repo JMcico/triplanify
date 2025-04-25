@@ -126,25 +126,40 @@ async def post_message(thread_id: str, content: str, agent: Agent, thread: Agent
             content=content,
         )
 
-        handler = StreamEventHandler(
-                project_client=project_client, utilities=utilities)
-
-        stream = await project_client.agents.create_stream(
+        # Synchronously create and run agent process
+        await project_client.agents.create_and_process_run(
             thread_id=thread.id,
             agent_id=agent.id,
-            event_handler=handler,
-            max_completion_tokens=MAX_COMPLETION_TOKENS,
-            max_prompt_tokens=MAX_PROMPT_TOKENS,
-            temperature=TEMPERATURE,
-            top_p=TOP_P,
-            instructions=agent.instructions,
         )
 
-        async with stream as s:
-            await s.until_done()
+        # Retrieve message from the thread
+        messages = await project_client.agents.list_messages(thread_id=thread.id)
+        if messages.text_messages:
+            utilities.log_token_blue(messages.text_messages[0]['text']['value'])
+            return messages.text_messages[0]['text']['value']
+        else:
+            utilities.log_msg_purple("No response received.")
+            return "No response received."
+
+        # handler = StreamEventHandler(
+        #         project_client=project_client, utilities=utilities)
+
+        # stream = await project_client.agents.create_stream(
+        #     thread_id=thread.id,
+        #     agent_id=agent.id,
+        #     event_handler=handler,
+        #     max_completion_tokens=MAX_COMPLETION_TOKENS,
+        #     max_prompt_tokens=MAX_PROMPT_TOKENS,
+        #     temperature=TEMPERATURE,
+        #     top_p=TOP_P,
+        #     instructions=agent.instructions,
+        # )
+
+        # async with stream as s:
+        #     await s.until_done()
         
-        print(handler.response_content)
-        return handler.response_content
+        # utilities.log_msg_purple(handler.response_content)
+        # return handler.response_content
 
     except Exception as e:
         utilities.log_msg_purple(

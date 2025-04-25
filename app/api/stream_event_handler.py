@@ -23,12 +23,13 @@ class StreamEventHandler(AsyncAgentEventHandler[str]):
         # self.functions = functions
         self.project_client = project_client
         self.util = utilities
+        self.response_content = ""
         super().__init__()
 
     async def on_message_delta(self, delta: MessageDeltaChunk) -> None:
         """Handle message delta events. This will be the streamed token"""
         self.util.log_token_blue(delta.text)
-        self.response_content = delta.text
+        self.response_content += delta.text
 
     async def on_thread_message(self, message: ThreadMessage) -> None:
         """Handle thread message events."""
