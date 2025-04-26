@@ -41,11 +41,14 @@ INSTRUCTIONS_FILE = "instructions/instructions.txt"
 toolset = AsyncToolSet()
 utilities = Utilities()
 
-project_client = AIProjectClient.from_connection_string(
-    credential=DefaultAzureCredential(),
-    conn_str=PROJECT_CONNECTION_STRING,
-)
 
+def get_project_client():
+    return AIProjectClient.from_connection_string(
+        credential=DefaultAzureCredential(),
+        conn_str=PROJECT_CONNECTION_STRING,
+    )
+
+project_client = get_project_client()
 
 async def add_agent_tools() -> None:
     """Add tools for the agent."""
@@ -79,6 +82,30 @@ async def add_agent_tools() -> None:
     return font_file_info
 
 
+async def get_agent() -> Agent:
+    try:
+        agent = await project_client.agents.get_agent(AGENT_ID)
+        return agent
+    except Exception as e:
+        logger.error("An error occurred getting the agent: %s", str(e))
+
+
+async def create_threads() -> AgentThread:
+    try:
+        thread = await project_client.agents.create_thread()
+        return thread
+    except Exception as e:
+        logger.error("An error occurred creating the thread: %s", str(e))
+
+
+async def get_threads(thread_id) -> AgentThread:
+    try:
+        thread = await project_client.agents.get_thread(thread_id)
+        return thread
+    except Exception as e:
+        logger.error("An error occurred getting the thread: %s", str(e))
+
+
 async def initialize() -> tuple[Agent, AgentThread]:
     """Initialize the agent with the sales data schema and instructions."""
 
@@ -97,18 +124,17 @@ async def initialize() -> tuple[Agent, AgentThread]:
             #     "{font_file_id}", font_file_info.id)
 
         print("Access agent...")
-        agent = await project_client.agents.get_agent(AGENT_ID)
+        agent = await get_agent()
         print(f"Access agent, ID: {agent.id}")
 
         print("Creating thread...")
-        thread = await project_client.agents.create_thread()
+        thread = await create_threads()
         print(f"Created thread, ID: {thread.id}")
 
         return agent, thread
 
     except Exception as e:
         logger.error("An error occurred initializing the agent: %s", str(e))
-        logger.error("Please ensure you've enabled an instructions file.")
 
 
 async def cleanup(agent: Agent, thread: AgentThread) -> None:
@@ -117,7 +143,7 @@ async def cleanup(agent: Agent, thread: AgentThread) -> None:
     # await project_client.agents.delete_agent(agent.id)
 
 
-async def post_message(thread_id: str, content: str, agent: Agent, thread: AgentThread) -> None:
+async def post_message(thread_id: str, content: str, agent: Agent, thread: AgentThread) -> str:
     """Post a message to the Azure AI Agent Service."""
     try:
         await project_client.agents.create_message(
