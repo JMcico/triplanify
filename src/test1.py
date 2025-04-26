@@ -135,7 +135,7 @@ async def post_message(thread_id: str, content: str, agent: Agent, thread: Agent
         # Retrieve message from the thread
         messages = await project_client.agents.list_messages(thread_id=thread.id)
         if messages.text_messages:
-            utilities.log_token_blue(messages.text_messages[0]['text']['value'])
+            # utilities.log_token_blue(messages.text_messages[0]['text']['value'])
             return messages.text_messages[0]['text']['value']
         else:
             utilities.log_msg_purple("No response received.")
@@ -189,7 +189,8 @@ async def main() -> None:
             if cmd in {"exit", "save"}:
                 break
 
-            await post_message(agent=agent, thread_id=thread.id, content=prompt, thread=thread)
+            response = await post_message(agent=agent, thread_id=thread.id, content=prompt, thread=thread)
+            utilities.log_token_blue(response)
 
         if cmd == "save":
             print("The agent has not been deleted, so you can continue experimenting with it in the Azure AI Foundry.")
