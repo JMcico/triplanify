@@ -1,1 +1,55 @@
-# triplanify.ai
+# Triplanify
+
+**Triplanify** is a backend service project built with FastAPI, designed to integrate with Azure Agent for thread and message handling.
+
+---
+
+## 📋 Requirements
+
+- **Python Version**: `3.12`
+- **Package Management**: `pip` (It is recommended to use a virtual environment.)
+
+---
+
+## 🚀 Quick Start
+
+1. **Clone the Repository**
+
+```bash
+git clone https://github.com/jmcico/triplanify.git
+cd triplanify
+```
+
+2. **Install Dependencies**
+
+```bash
+pip install -r requirements.txt
+```
+
+3. **Deploy and Run the Backend Service**
+
+Navigate to the `app` directory and start the Uvicorn server:
+
+```bash
+cd app
+uvicorn main:app --reload
+```
+
+- The service will be available at: `http://127.0.0.1:8000`
+- Access API documentation:
+  - Swagger UI: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+  - ReDoc: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
+
+---
+
+## 📚 Additional Notes
+
+- Currently, the project includes two primary endpoints: `/api/thread` and `/api/message`.
+
+---
+
+## 🛠️ Development and Contribution
+
+If you wish to contribute, please ensure that your code follows the project’s style guidelines and is properly tested before submitting a pull request.
+
+---
