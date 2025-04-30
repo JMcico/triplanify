@@ -13,7 +13,7 @@ from azure.ai.projects.models import (
     ThreadRun,
 )
 
-from api.utilities import Utilities
+from app.api.utilities import Utilities
 
 
 class StreamEventHandler(AsyncAgentEventHandler[str]):

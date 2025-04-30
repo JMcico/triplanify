@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
-from api.agent_service import (
+from app.api.agent_service import (
     get_project_client, 
     initialize, 
     post_message, 

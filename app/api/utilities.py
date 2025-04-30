@@ -3,7 +3,7 @@ from pathlib import Path
 from azure.ai.projects.aio import AIProjectClient
 from azure.ai.projects.models import ThreadMessage
 
-from api.terminal_colors import TerminalColors as tc
+from app.api.terminal_colors import TerminalColors as tc
 
 
 class Utilities:

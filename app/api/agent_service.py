@@ -15,9 +15,9 @@ from azure.ai.projects.models import (
 from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv
 
-from api.terminal_colors import TerminalColors as tc
-from api.utilities import Utilities
-from api.stream_event_handler import StreamEventHandler
+from app.api.terminal_colors import TerminalColors as tc
+from app.api.utilities import Utilities
+from app.api.stream_event_handler import StreamEventHandler
 
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)

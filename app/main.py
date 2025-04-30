@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from api import routes
+from app.api import routes
 
 app = FastAPI(title="Triplanify API")
 
