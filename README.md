@@ -26,13 +26,21 @@ cd triplanify
 pip install -r requirements.txt
 ```
 
-3. **Deploy and Run the Backend Service**
+3. **Install Azure CLI and get authentification**
+```bash
+# Install Azure CLI
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-Navigate to the `app` directory and start the Uvicorn server:
+# Get authentification
+azd login
+```
+
+4. **Deploy and Run the Backend Service**
+
+Start the Uvicorn server:
 
 ```bash
-cd app
-uvicorn main:app --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
 - The service will be available at: `http://127.0.0.1:8000`
